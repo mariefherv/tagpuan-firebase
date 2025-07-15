@@ -1,9 +1,9 @@
 const { userSchema } = require("../validators/userValidator");
 const userService = require("../services/userService");
 
-exports.getUsers = async (req, res) => {
-  const users = await userService.getAllUsers();
-  res.json(users);
+exports.getUserDetails = async (req, res) => {
+  const userData = await userService.getUserDetails(req.user.userId);
+  res.status(200).json(userData);
 };
 
 exports.createUser = async (req, res) => {
@@ -65,4 +65,71 @@ exports.updateUser = async (req, res) => {
   }
 }
 
+exports.getFarmers = async (req, res) => {
+  try {
+    const farmers = await userService.getFarmers();
+    res.status(200).json(farmers);
+  } catch (err) {
+    console.error("Error in userController.getFarmers:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
 
+exports.getUnverifiedUsers = async (req, res) => {
+  try {
+    const requester = req.user;
+    const requesterData = await userService.getUserById(requester.userId);
+    if (requesterData.role !== "Admin") {
+      return res.status(403).json({ error: "No permission." });
+    }
+
+    const unverifiedUsers = await userService.getUnverifiedUsers();
+    
+    res.status(200).json(unverifiedUsers);
+  } catch (err) {
+    console.error("Error in userController.getUnverifiedUsers:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+exports.verifyUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const requester = req.user;
+
+    const requesterData = await userService.getUserById(requester.userId);
+    if (requesterData.role !== "Admin") {
+      return res.status(403).json({ error: "No permission." });
+    }
+
+    await userService.verifyUser(userId);
+    res.status(200).json({ message: "User verified successfully" });
+  } catch (err) {
+    if (err.message === "User not found") {
+      return res.status(404).json({ error: err.message });
+    }
+    console.error("Error in userController.verifyUser:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+exports.rejectUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const requester = req.user;
+
+    const requesterData = await userService.getUserById(requester.userId);
+    if (requesterData.role !== "Admin") {
+      return res.status(403).json({ error: "No permission." });
+    }
+
+    await userService.rejectUser(userId);
+    res.status(200).json({ message: "User rejected successfully" });
+  } catch (err) {
+    if (err.message === "User not found") {
+      return res.status(404).json({ error: err.message });
+    }
+    console.error("Error in userController.rejectUser:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};

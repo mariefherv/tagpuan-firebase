@@ -13,8 +13,7 @@ async function isAuthenticated(req, res, next) {
     try {
         const decodedToken = await admin.auth().verifyIdToken(idToken);
         req.user = decodedToken;
-        console.log('User authenticated:', req.user);
-        // Optionally, you can attach user ID to the request object for further use
+
         req.user.userId = decodedToken.uid;
         next(); // ✅ Proceed to the next middleware or route handler
     } catch (error) {

@@ -1,5 +1,6 @@
 const { requestSchema } = require("../validators/requestValidator");
 const requestService = require("../services/requestService");
+const e = require("express");
 
 exports.createRequest = async (req, res) => {
   try {
@@ -79,6 +80,22 @@ exports.getWinningBid = async (req, res) => {
       return res.status(404).json({ error: err.message });
     }
     console.error("Error retrieving winning bid:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+exports.createDirectRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+    if (!id || !userId) {
+      return res.status(400).json({ error: "Request ID and User ID are required" });
+    }
+    const parsed = requestSchema.parse(req.body);
+    const request = await requestService.createDirectRequest(id, userId, parsed);
+    res.status(201).json(request);
+  } catch (err) {
+    console.error("Error creating direct request:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 }

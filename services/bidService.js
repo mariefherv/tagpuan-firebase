@@ -1,21 +1,17 @@
 const { db } = require("../config/firebase.config.js");
 const { Timestamp } = require("firebase-admin").firestore;
-const bidSchema = require("../validators/bidValidator").bidSchema;
 
 // Create bid
 exports.createBid = async (bidData) => {
-    const parsed = bidSchema.safeParse(bidData);
-    if (!parsed.success) throw new Error(parsed.error.message);
-
     // Check if the request is "Up for Bidding"
-    const requestDoc = await db.collection("requests").doc(parsed.data.request_id).get();
+    const requestDoc = await db.collection("requests").doc(bidData.request_id).get();
     if (!requestDoc.exists) throw new Error("Request not found");
     if (requestDoc.data().status !== "Up for Bidding") {
         throw new Error("Cannot bid: request is not up for bidding");
     };
 
     const data = {
-        ...parsed.data,
+        ...bidData,
         created_at: Timestamp.now(),
         updated_at: Timestamp.now(),
     };

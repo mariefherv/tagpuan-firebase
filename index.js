@@ -10,8 +10,11 @@ app.use(express.json());
 const userRoutes = require("./routes/userRoutes");
 const requestRoutes = require("./routes/requestRoutes");
 const bidRoutes = require("./routes/bidRoutes");
+const conversationRoutes = require("./routes/conversationRoutes");
+
 app.use("/user", userRoutes);
 app.use("/request", requestRoutes);
 app.use("/bid", bidRoutes);
+app.use("/conversation", conversationRoutes);
 
 exports.api = onRequest({ region: "asia-southeast1" }, app);

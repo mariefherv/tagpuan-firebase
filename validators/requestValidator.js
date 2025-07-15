@@ -19,7 +19,7 @@ const requestSchema = z.object({
   force_majeure: z.union([z.string(), z.null()]).optional(),
   address: z
     .string()
-    .min(10, "Delivery address must be at least 10 characters")
+    .min(3, "Delivery address must be at least 3 characters")
     .max(100, "Delivery address is too long"),
 
   logistics: z.enum(["pickup", "delivery"]),

@@ -24,23 +24,12 @@ const userSchema = z
     frontIDUrl: z.string().url(),
     backIDUrl: z.string().url(),
     profile_picture: z.string().default("https://firebasestorage.googleapis.com/v0/b/notional-buffer-462011-q7.firebasestorage.app/o/users%2Fdefault%2Ftagpuan-default.jpg?alt=media&token=abf57682-d90c-4665-bbc8-a9905288fec6"),
-    is_verified: z.boolean().default(false),
-    agricoin: z.number().nonnegative().optional(),
-    isOnline: z.boolean().optional(),
-    last_login: z.union([z.string(), z.date()]).optional(),
-    last_logout: z.union([z.string(), z.date()]).optional(),
-
+    agricoin: z.number().nonnegative().optional().default(0),
+    isOnline: z.boolean().optional().default(false),
+    verification: z.enum(["Pending", "Approved", "Rejected"]).default("Pending"),
     farmer_details: z.optional(farmerDetailsSchema),
-    verification: z
-      .object({
-        status: z.enum(["Pending", "Approved", "Rejected"]).optional(),
-        date_applied: z.union([z.string(), z.date()]).optional(),
-        date_response: z.union([z.string(), z.date()]).optional(),
-        front_id: z.string().optional(),
-        back_id: z.string().optional()
-      })
-      .optional()
-  })
+    lastSeen: z.any().optional()
+   })
   .refine(
     data => {
       if (data.role === "Farmer") return !!data.farmer_details;

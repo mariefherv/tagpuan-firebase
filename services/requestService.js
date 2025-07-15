@@ -40,7 +40,7 @@ exports.getRequestbyId = async (id) => {
 };
 
 exports.getAllRequests = async () => {
-  const snapshot = await db.collection("requests").get();
+  const snapshot = await db.collection("requests").orderBy("schedule", "asc").get();
   const requests = [];
 
   for (const doc of snapshot.docs) {
@@ -64,7 +64,7 @@ exports.getAllRequests = async () => {
 };
 
 exports.getRequestsByUser = async (userId) => {
-  const snapshot = await db.collection("requests").where("contractor_id", "==", userId).get();
+  const snapshot = await db.collection("requests").where("contractor_id", "==", userId).orderBy("schedule", "asc").get();
   const requests = [];
 
   for (const doc of snapshot.docs) {
@@ -147,3 +147,38 @@ exports.getWinningBid = async (requestId) => {
   const winningBid = snapshot.docs[0].data();
   return { id: snapshot.docs[0].id, ...winningBid };
 }
+
+// Create a direct request to a farmer
+exports.createDirectRequest = async (farmerId, userId, data) => {
+  if (!farmerId || !userId || !data) {
+    throw new Error("Farmer ID, User ID, and request data are required");
+  }
+
+  const requestData = {
+    ...data,
+    schedule: data.schedule
+      ? Timestamp.fromDate(new Date(`${data.schedule}T23:59:00+08:00`))
+      : null,
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
+    status: "Pending"
+  };
+
+  const docRef = await db.collection("requests").doc(); // auto-ID
+  await docRef.set(requestData);
+
+  // Create a bid for the farmer
+  const bidData = {
+    request_id: docRef.id,
+    farmer_id: farmerId,
+    contractor_id: userId,
+    status: "Won",
+    created_at: Timestamp.now(),
+    updated_at: Timestamp.now(),
+  };
+
+  const bidRef = db.collection("bids").doc();
+  await bidRef.set(bidData);
+
+  return docRef.id;
+};
